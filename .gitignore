@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
-package-lock.json
+# Keep package-lock.json for npm (commit it for reproducible builds)
+# Only ignore other package managers' lock files
 yarn.lock
 pnpm-lock.yaml
 
