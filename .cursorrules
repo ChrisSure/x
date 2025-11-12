@@ -1,0 +1,212 @@
+# Cursor Rules for NodeJS + TypeScript Project
+
+## Core Technologies
+- **Runtime**: Node.js (LTS version preferred)
+- **Language**: TypeScript (strict mode enabled)
+- **Package Manager**: npm/yarn/pnpm (be consistent with existing lock file)
+
+## TypeScript Guidelines
+
+### Type Safety
+- Always use strict TypeScript configuration (`strict: true`)
+- Prefer explicit types over `any`; use `unknown` when type is truly unknown
+- Use `interface` for object shapes that may be extended, `type` for unions/intersections
+- Leverage utility types: `Partial<T>`, `Required<T>`, `Pick<T>`, `Omit<T>`, `Record<K, V>`
+- Use `const` assertions for literal types when appropriate
+- Enable `strictNullChecks` and handle null/undefined explicitly
+
+### Code Style
+- Use meaningful, descriptive variable and function names
+- Follow camelCase for variables and functions, PascalCase for classes and types
+- Use UPPER_SNAKE_CASE for constants
+- Prefer `const` over `let`, avoid `var`
+- Use arrow functions for callbacks and short functions
+- Use async/await over raw promises for better readability
+
+### Project Structure
+
+
+## Node.js Best Practices
+
+### Error Handling
+- Always handle errors explicitly, never leave catch blocks empty
+- Use custom error classes extending `Error`
+- Implement global error handlers for uncaught exceptions
+- Use try-catch with async/await, avoid .catch() chains
+- Log errors with proper context (timestamp, stack trace, request ID)
+
+### Async Patterns
+- Prefer async/await over callbacks and raw promises
+- Handle promise rejections properly
+- Use `Promise.all()` for concurrent operations
+- Use `Promise.allSettled()` when some failures are acceptable
+- Avoid blocking operations in the event loop
+
+### Performance
+- Use streaming for large file operations
+- Implement proper caching strategies (Redis, in-memory)
+- Use connection pooling for databases
+- Lazy-load heavy dependencies
+- Monitor and optimize hot paths
+
+### Security
+- Validate and sanitize all user inputs
+- Use environment variables for sensitive data (never commit secrets)
+- Implement rate limiting for APIs
+- Use helmet.js for Express security headers
+- Keep dependencies updated (run `npm audit` regularly)
+- Use parameterized queries to prevent SQL injection
+- Implement proper authentication and authorization
+
+## Code Quality
+
+### Functions
+- Keep functions small and focused (single responsibility)
+- Limit function parameters (max 3-4, use objects for more)
+- Return early to reduce nesting
+- Use pure functions when possible
+- Document complex logic with comments
+
+### Testing
+- Write unit tests for business logic
+- Use integration tests for API endpoints
+- Aim for >80% code coverage
+- Use descriptive test names: `should do X when Y`
+- Mock external dependencies
+- Preferred testing frameworks: Jest, Vitest, or Mocha + Chai
+
+### Documentation
+- Use JSDoc comments for public APIs
+- Document function parameters and return types
+- Add README.md with setup instructions
+- Document environment variables required
+- Keep inline comments minimal but meaningful
+
+## Dependencies
+
+### Management
+- Pin exact versions for production dependencies
+- Keep devDependencies separate
+- Regularly update dependencies
+- Audit for security vulnerabilities
+- Avoid unnecessary dependencies (check bundle size)
+
+### Import Style
+- Use named imports over default imports when possible
+- Organize imports: external → internal → relative
+- Use path aliases for cleaner imports (@/utils instead of ../../utils)
+
+## Environment & Configuration
+
+### Environment Variables
+- Use `.env` files for local development (add to .gitignore)
+- Provide `.env.example` as a template
+- Validate environment variables at startup
+- Use libraries like `dotenv` and `zod` for validation
+
+### Configuration Files
+- Use TypeScript for config files when possible
+- Separate config by environment (dev, staging, prod)
+- Never commit sensitive data
+
+## Git & Version Control
+
+### Commits
+- Write clear, descriptive commit messages
+- Use conventional commits format: `feat:`, `fix:`, `docs:`, etc.
+- Keep commits atomic and focused
+
+### Branching
+- Use feature branches
+- Keep main/master branch stable
+- Use pull requests for code review
+
+## API Design (if applicable)
+
+### RESTful APIs
+- Use proper HTTP methods (GET, POST, PUT, PATCH, DELETE)
+- Return appropriate status codes
+- Version your APIs (/api/v1/)
+- Use consistent response formats
+- Implement proper CORS handling
+
+### GraphQL (if applicable)
+- Use DataLoader to prevent N+1 queries
+- Implement proper error handling
+- Use typed resolvers
+
+## Logging & Monitoring
+
+- Use structured logging (JSON format)
+- Include correlation IDs for request tracking
+- Log at appropriate levels (error, warn, info, debug)
+- Use logging libraries like Winston or Pino
+- Don't log sensitive information
+
+## Common Patterns
+
+### Dependency Injection
+- Use DI containers for better testability
+- Avoid tight coupling between modules
+
+### Repository Pattern
+- Abstract data access layer
+- Makes switching databases easier
+
+### Factory Pattern
+- Use for complex object creation
+- Encapsulate instantiation logic
+
+## Performance Optimization
+
+- Use clustering for multi-core systems
+- Implement graceful shutdown
+- Use compression middleware
+- Optimize database queries
+- Profile and monitor application performance
+
+## Code Review Checklist
+
+- [ ] Code follows TypeScript best practices
+- [ ] All functions are properly typed
+- [ ] Error handling is implemented
+- [ ] Tests are written and passing
+- [ ] No console.logs in production code
+- [ ] Security concerns addressed
+- [ ] Performance considered
+- [ ] Documentation updated
+
+## Anti-Patterns to Avoid
+
+- ❌ Using `any` type without good reason
+- ❌ Ignoring TypeScript errors
+- ❌ Callback hell (use async/await)
+- ❌ Mixing callbacks and promises
+- ❌ Not handling promise rejections
+- ❌ Blocking the event loop
+- ❌ Hardcoding configuration values
+- ❌ Committing secrets or API keys
+- ❌ Large monolithic files (>500 lines)
+- ❌ Deep nesting (>3 levels)
+
+## Tools & Linting
+
+- Use ESLint with TypeScript plugin
+- Configure Prettier for code formatting
+- Use husky for git hooks
+- Run lint-staged on pre-commit
+- Use TypeScript in strict mode
+
+## When Helping with Code
+
+1. Prioritize type safety and explicit types
+2. Write clean, self-documenting code
+3. Follow existing project patterns
+4. Suggest better alternatives when applicable
+5. Consider edge cases and error scenarios
+6. Write production-ready code, not quick hacks
+7. Include necessary imports and types
+8. Follow async/await patterns consistently
+9. Add comments for complex logic only
+10. Consider performance implications
+
