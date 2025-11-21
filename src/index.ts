@@ -1,19 +1,10 @@
-/**
- * Main entry point for the application
- */
+import { start } from './modules/collector';
 
-export function greet(name: string): string {
-  return `Hello, ${name}!`;
+async function main(): Promise<void> {
+  await start();
 }
 
-export function add(a: number, b: number): number {
-  return a + b;
-}
-
-// Run if executed directly
-if (require.main === module) {
-  // eslint-disable-next-line no-console
-  console.log(greet('World'));
-  // eslint-disable-next-line no-console
-  console.log(`2 + 3 = ${add(2, 3)}`);
-}
+main().catch((error: Error) => {
+  console.error('Application error:', error);
+  process.exit(1);
+});
