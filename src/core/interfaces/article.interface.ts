@@ -3,6 +3,7 @@
  */
 export interface ArticleContent {
   link: string;
+  title?: string;
   content: string;
   dateString: string;
 }

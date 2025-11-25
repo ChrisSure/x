@@ -34,15 +34,20 @@ export async function collectScrappedData(data: ArticleContent[]): Promise<void>
     }
 
     try {
-      article.content = await aiService.cleanContent(article.content || '');
+      const cleaned = await aiService.cleanContent(article.content || '');
+      article.title = cleaned.title;
+      article.content = cleaned.content;
 
       logger.info(`Successfully cleaned article ${i + 1}/${data.length}`, {
-        article: article,
+        title: article.title,
+        link: article.link,
+        content: article.content,
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error(`Failed to clean article ${i + 1}/${data.length}`, {
         link: article.link,
-        error,
+        error: errorMessage,
       });
     }
   }

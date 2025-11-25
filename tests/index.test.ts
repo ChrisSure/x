@@ -1,6 +1,45 @@
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, jest, beforeAll } from '@jest/globals';
 import { start } from '@/modules/collector';
 import { getSources } from '@/modules/sources/source';
+
+// Set up environment variables before any imports that need them
+beforeAll(() => {
+  process.env['OPENAI_API_KEY'] = 'test-api-key';
+});
+
+// Mock the OpenAI provider to avoid actual API calls
+jest.mock('@/providers/ai/openai', () => ({
+  openAIProvider: {
+    chat: jest.fn(() =>
+      Promise.resolve({
+        id: 'test-id',
+        object: 'chat.completion',
+        created: Date.now(),
+        model: 'gpt-4',
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: 'assistant',
+              content: JSON.stringify({
+                title: 'Test Title',
+                content: 'Test cleaned content',
+              }),
+            },
+            finishReason: 'stop',
+          },
+        ],
+        usage: {
+          promptTokens: 10,
+          completionTokens: 20,
+          totalTokens: 30,
+        },
+      })
+    ),
+  },
+  OpenAIProvider: jest.fn(),
+  OpenAIProviderError: class OpenAIProviderError extends Error {},
+}));
 
 // Mock the scrapper reader to avoid launching Puppeteer in tests
 jest.mock('@/modules/reader/strategies/scrapper-reader/scrapper-reader', () => ({

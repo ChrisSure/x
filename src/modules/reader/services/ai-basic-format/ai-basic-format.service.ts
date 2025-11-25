@@ -3,6 +3,14 @@ import { logger } from '@/core/services/logger.service';
 import { CONTENT_CLEANING_SYSTEM_PROMPT } from './core/ai-basic-format-service.constants';
 
 /**
+ * Cleaned article content result
+ */
+export interface CleanedArticleContent {
+  title: string;
+  content: string;
+}
+
+/**
  * Custom error class for AI Basic Format Service errors
  */
 export class AIBasicFormatServiceError extends Error {
@@ -28,13 +36,13 @@ export class AiBasicFormatService {
   /**
    * Cleans article content by removing metadata and extraneous information
    * @param content - Raw article content to clean
-   * @returns Promise resolving to cleaned content
+   * @returns Promise resolving to cleaned content with title and body
    * @throws {AIBasicFormatServiceError} If cleaning fails
    */
-  async cleanContent(content: string): Promise<string> {
+  async cleanContent(content: string): Promise<CleanedArticleContent> {
     if (!content || content.trim().length === 0) {
       logger.warn('Empty content provided to cleanContent');
-      return content;
+      return { title: '', content: '' };
     }
 
     try {
@@ -46,23 +54,51 @@ export class AiBasicFormatService {
           },
           {
             role: 'user',
-            content: `Clean this article content:\n\n${content}`,
+            content: `Here is the raw article content. Clean it and REWRITE IT DEEPLY while keeping the context:\n\n${content}`,
           },
         ],
         options: {
-          model: 'gpt-4',
+          model: 'gpt-4o-mini',
           temperature: 0.3,
-          maxTokens: 2000,
+          maxTokens: 4096,
         },
       });
 
-      const cleanedContent = response.choices[0]?.message?.content || '';
+      const aiResponse = response.choices[0]?.message?.content || '';
 
-      if (!cleanedContent || cleanedContent.trim().length === 0) {
-        logger.error('AI returned empty cleaned content');
+      if (!aiResponse || aiResponse.trim().length === 0) {
+        logger.error('AI returned empty response');
         throw new AIBasicFormatServiceError('AI service returned empty content', response);
       }
-      return cleanedContent.trim();
+
+      // Parse the JSON response
+      let parsedContent: CleanedArticleContent;
+      try {
+        // Remove potential markdown code blocks if present
+        const jsonString = aiResponse.replace(/```json\n?|\n?```/g, '').trim();
+        parsedContent = JSON.parse(jsonString) as CleanedArticleContent;
+
+        if (!parsedContent.title || !parsedContent.content) {
+          throw new Error('Missing title or content in parsed response');
+        }
+      } catch (parseError) {
+        logger.error('Failed to parse AI response as JSON', {
+          parseError,
+          aiResponse,
+        });
+        throw new AIBasicFormatServiceError('Failed to parse AI response as JSON', parseError);
+      }
+
+      logger.info('Content cleaning completed', {
+        titleLength: parsedContent.title.length,
+        contentLength: parsedContent.content.length,
+        tokensUsed: response.usage.totalTokens,
+      });
+
+      return {
+        title: parsedContent.title.trim(),
+        content: parsedContent.content.trim(),
+      };
     } catch (error) {
       logger.error('Failed to clean content', { error });
 
@@ -77,22 +113,22 @@ export class AiBasicFormatService {
   /**
    * Cleans multiple article contents in batch
    * @param contents - Array of raw article contents to clean
-   * @returns Promise resolving to array of cleaned contents
+   * @returns Promise resolving to array of cleaned contents with titles and bodies
    * @throws {AIBasicFormatServiceError} If batch cleaning fails
    */
-  async cleanContentBatch(contents: string[]): Promise<string[]> {
+  async cleanContentBatch(contents: string[]): Promise<CleanedArticleContent[]> {
     logger.info('Starting batch content cleaning', {
       batchSize: contents.length,
     });
 
-    const cleanedContents: string[] = [];
+    const cleanedContents: CleanedArticleContent[] = [];
 
     for (let i = 0; i < contents.length; i++) {
       const content = contents[i];
 
       if (!content) {
         logger.warn(`Skipping empty content at index ${i}`);
-        cleanedContents.push('');
+        cleanedContents.push({ title: '', content: '' });
         continue;
       }
 
@@ -104,8 +140,8 @@ export class AiBasicFormatService {
         logger.error(`Failed to clean article ${i + 1}/${contents.length}`, {
           error,
         });
-        // Keep original content if cleaning fails
-        cleanedContents.push(content);
+        // Keep original content if cleaning fails (without title extraction)
+        cleanedContents.push({ title: '', content });
       }
     }
 

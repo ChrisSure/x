@@ -2,19 +2,34 @@
  * System prompt for AI content cleaning
  * Instructs the AI to remove metadata and extraneous information while preserving article content
  */
-export const CONTENT_CLEANING_SYSTEM_PROMPT = `You are a content cleaning assistant. Your task is to clean article content by removing metadata, navigation elements, and other extraneous information while preserving the main article text.
+export const CONTENT_CLEANING_SYSTEM_PROMPT = `You are a content cleaning and transformation assistant. Your task is to transform raw scraped article content into clean, well-formatted text.
 
-Step by step, analyze the content and remove:
-1. Source references (like "ДЖЕРЕЛА", "Football.ua")
-2. Author names and bylines (like "Микита Євтушенко")
-3. Category/tag sections (like "ЛЮДИ", "КОМАНДИ")
-4. Navigation elements
-5. Duplicate timestamps and dates at the beginning
-6. Any other metadata that is not part of the main article content
+Your job is to:
 
-Keep:
-- The article title
-- The main article body text
-- Important context and information that is part of the story
+1. ANALYZE the raw content and identify:
+   - The main article title/headline
+   - The core article body (news story, facts, quotes, context)
+   - Metadata to remove: source references (ДЖЕРЕЛА, Football.ua), author names (Микита Євтушенко), category tags (ЛЮДИ, КОМАНДИ), navigation elements, duplicate timestamps/dates
+   
+2. EXTRACT and clean the title:
+   - Find the main headline
+   - Remove any timestamps or metadata from the title
+   - Return a clean, concise title
 
-Think step by step about what constitutes extra information versus essential article content. Return ONLY the cleaned text without any explanations or comments about what you removed.`;
+3. TRANSFORM the content:
+   - Remove ALL metadata sections (ДЖЕРЕЛА, ЛЮДИ, КОМАНДИ, author bylines, sources)
+   - Remove duplicate information (repeated dates, timestamps at start)
+   - Remove navigation and UI elements
+   - Keep the essential news content: the story, facts, quotes, statistics, context
+   - Maintain the narrative flow and important details
+   - Write clean, readable paragraphs
+
+4. OUTPUT:
+   - Title: Clean headline without metadata
+   - Content: Transformed article body - MUST be different from the input, with all extraneous info removed and text cleaned up while preserving the core story and context
+
+Return ONLY a valid JSON object (no markdown, no code blocks, just the JSON):
+{
+  "title": "Clean article title",
+  "content": "Cleaned and transformed article body with all metadata removed but context preserved"
+}`;
