@@ -59,20 +59,21 @@ async function processArticleLink(page: Page | null, link: string): Promise<bool
       timeout: 30000,
     });
 
-    const dateString = await page?.$eval(
+    const dateString = await page.$eval(
       '.date',
-      (el) => (el as unknown as { textContent: string | null }).textContent || ''
+      (el) => (el as unknown as { innerText: string }).innerText
     );
 
-    if (!isArticleRecentEnough(dateString || '')) {
+    if (!isArticleRecentEnough(dateString)) {
       return false;
     }
 
-    const content = await page?.$eval(
+    const content = await page.$eval(
       '.author-article',
-      (el) => (el as unknown as { textContent: string | null }).textContent || ''
+      (el) => (el as unknown as { innerText: string }).innerText
     );
 
+    //console.log(content);
     logger.debug('Article content:', content);
 
     // Wait a bit before navigating to next page (be respectful to the server)
@@ -81,7 +82,7 @@ async function processArticleLink(page: Page | null, link: string): Promise<bool
     return true; // Continue processing next articles
   } catch (error) {
     if (error instanceof Error) {
-      logger.error(`Error processing link ${link}: ${error.message}`, error);
+      logger.error(`Error scraping Football UA: ${error.message}`, error);
     }
     return true; // Continue with next link even if one fails
   }
