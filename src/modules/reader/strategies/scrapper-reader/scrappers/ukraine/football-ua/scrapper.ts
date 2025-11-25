@@ -6,6 +6,7 @@ import {
 } from '@/modules/reader/strategies/scrapper-reader/scrappers/ukraine/football-ua/core/constants';
 import { PuppeteerScraper } from '@/modules/reader/strategies/scrapper-reader/providers/puppeteer-scraper';
 import { Page } from 'puppeteer';
+import { logger } from '@/core/services/logger.service';
 
 export async function createFootballUAScraper(source: Source): Promise<void> {
   const scraper = new PuppeteerScraper(source.url);
@@ -16,7 +17,7 @@ export async function createFootballUAScraper(source: Source): Promise<void> {
     const links = extractLinksFromHTML(mainNews);
     const page = scraper.getPage();
     if (!page) {
-      throw new Error('Page not initialized');
+      logger.error('Page not initialized');
     }
 
     for (const link of links) {
@@ -26,13 +27,13 @@ export async function createFootballUAScraper(source: Source): Promise<void> {
 
       const shouldContinue = await processArticleLink(page, link);
       if (!shouldContinue) {
-        console.log('Article is older than 3 hours. Stopping processing.');
+        logger.info('Article is older than 3 hours. Stopping processing.');
         break;
       }
     }
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`Error scraping Football UA: ${error.message}`);
+      logger.error(`Error scraping Football UA: ${error.message}`, error);
     }
     throw error;
   } finally {
@@ -51,28 +52,28 @@ async function getMainNews(scraper: PuppeteerScraper): Promise<string[]> {
  * @param link - URL to process
  * @returns boolean - true if should continue processing more links, false if should stop
  */
-async function processArticleLink(page: Page, link: string): Promise<boolean> {
+async function processArticleLink(page: Page | null, link: string): Promise<boolean> {
   try {
-    await page.goto(link, {
+    await page?.goto(link, {
       waitUntil: 'networkidle0',
       timeout: 30000,
     });
 
-    const dateString = await page.$eval(
+    const dateString = await page?.$eval(
       '.date',
-      (el) => (el as unknown as { innerText: string }).innerText
+      (el) => (el as unknown as { textContent: string | null }).textContent || ''
     );
 
-    if (!isArticleRecentEnough(dateString)) {
+    if (!isArticleRecentEnough(dateString || '')) {
       return false;
     }
 
-    const content = await page.$eval(
+    const content = await page?.$eval(
       '.author-article',
-      (el) => (el as unknown as { innerText: string }).innerText
+      (el) => (el as unknown as { textContent: string | null }).textContent || ''
     );
 
-    console.log(content);
+    logger.debug('Article content:', content);
 
     // Wait a bit before navigating to next page (be respectful to the server)
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -80,7 +81,7 @@ async function processArticleLink(page: Page, link: string): Promise<boolean> {
     return true; // Continue processing next articles
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`Error processing link ${link}: ${error.message}`);
+      logger.error(`Error processing link ${link}: ${error.message}`, error);
     }
     return true; // Continue with next link even if one fails
   }

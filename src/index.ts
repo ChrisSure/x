@@ -1,10 +1,11 @@
 import { start } from './modules/collector';
+import { logger } from './core/services/logger.service';
 
 async function main(): Promise<void> {
   await start();
 }
 
 main().catch((error: Error) => {
-  console.error('Application error:', error);
+  logger.error('Application error:', error);
   process.exit(1);
 });

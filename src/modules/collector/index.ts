@@ -2,6 +2,7 @@ import { Source } from '@/modules/sources/interfaces/source.interface';
 import { getSources } from '@/modules/sources/source';
 import { Reader } from '@/modules/sources/enums/reader.enum';
 import { scrapperReader } from '@/modules/reader/strategies/scrapper-reader/scrapper-reader';
+import { logger } from '@/core/services/logger.service';
 
 export async function start(): Promise<void> {
   const resources: Source[] = getSources();
@@ -12,12 +13,10 @@ export async function start(): Promise<void> {
         await scrapperReader(resource);
         break;
       case Reader.Api:
-        // eslint-disable-next-line no-console
-        console.log('Api Reader');
+        logger.info('Api Reader');
         break;
       case Reader.Mobile:
-        // eslint-disable-next-line no-console
-        console.log('Mobile Reader');
+        logger.info('Mobile Reader');
         break;
     }
   }

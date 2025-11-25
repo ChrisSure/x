@@ -1,4 +1,5 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
+import { logger } from '@/core/services/logger.service';
 
 /**
  * PuppeteerScraper class for web scraping using Puppeteer
@@ -167,7 +168,7 @@ export class PuppeteerScraper {
       }
     } catch (error) {
       if (error instanceof Error) {
-        console.error(`Error closing browser: ${error.message}`);
+        logger.error(`Error closing browser: ${error.message}`, error);
       }
     }
   }
