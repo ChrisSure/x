@@ -4,6 +4,7 @@ import { Reader } from '@/modules/sources/enums/reader.enum';
 import { scrapperReader } from '@/modules/reader/strategies/scrapper-reader/scrapper-reader';
 import { logger } from '@/core/services/logger.service';
 import { ArticleContent } from '@/core/interfaces';
+import { AiBasicFormatService } from '@/modules/reader/services/ai-basic-format/ai-basic-format.service';
 
 export async function start(): Promise<void> {
   const resources: Source[] = getSources();
@@ -12,7 +13,7 @@ export async function start(): Promise<void> {
     switch (resource.reader) {
       case Reader.Scrapper:
         const data = await scrapperReader(resource);
-        collectScrappedData(data);
+        await collectScrappedData(data);
         break;
       case Reader.Api:
         logger.info('Api Reader');
@@ -24,6 +25,25 @@ export async function start(): Promise<void> {
   }
 }
 
-export function collectScrappedData(data: ArticleContent[]): void {
-  logger.info('Collected scraped data', { articleCount: data.length, data });
+export async function collectScrappedData(data: ArticleContent[]): Promise<void> {
+  const aiService = new AiBasicFormatService();
+  for (let i = 0; i < data.length; i++) {
+    const article = data[i];
+    if (!article) {
+      continue;
+    }
+
+    try {
+      article.content = await aiService.cleanContent(article.content || '');
+
+      logger.info(`Successfully cleaned article ${i + 1}/${data.length}`, {
+        article: article,
+      });
+    } catch (error) {
+      logger.error(`Failed to clean article ${i + 1}/${data.length}`, {
+        link: article.link,
+        error,
+      });
+    }
+  }
 }
