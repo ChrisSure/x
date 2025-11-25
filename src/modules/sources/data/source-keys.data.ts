@@ -1,3 +1,3 @@
-export const SourceKeys = {
+export const UaSourceKeys = {
   FootballUa: 'football-ua',
 };

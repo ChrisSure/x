@@ -31,7 +31,7 @@ describe('Sources', () => {
       const result = getSources();
       const footballUA = result.find((source) => source.name === 'Football UA');
       expect(footballUA).toBeDefined();
-      expect(footballUA?.url).toBe('https://football.ua/');
+      expect(footballUA?.url).toBe('https://football.ua/ukraine.html');
     });
 
     it('should return sources with valid structure', () => {
