@@ -3,13 +3,15 @@ import {
   EXCLUDE_LINKS,
   MAIN_NEWS_CLASS,
   THREE_HOURS_IN_MS,
-} from '@/modules/reader/strategies/scrapper-reader/scrappers/ukraine/football-ua/core/constants';
+} from '@/modules/reader/strategies/scrapper-reader/scrappers/ukraine/football-ua/core/constants/constants';
+import { ArticleContent, ProcessArticleResult } from '@/core/interfaces';
 import { PuppeteerScraper } from '@/modules/reader/strategies/scrapper-reader/providers/puppeteer-scraper';
 import { Page } from 'puppeteer';
 import { logger } from '@/core/services/logger.service';
 
-export async function createFootballUAScraper(source: Source): Promise<void> {
+export async function createFootballUAScraper(source: Source): Promise<ArticleContent[]> {
   const scraper = new PuppeteerScraper(source.url);
+  const articles: ArticleContent[] = [];
 
   try {
     await scraper.initialize();
@@ -18,6 +20,7 @@ export async function createFootballUAScraper(source: Source): Promise<void> {
     const page = scraper.getPage();
     if (!page) {
       logger.error('Page not initialized');
+      return articles;
     }
 
     for (const link of links) {
@@ -25,12 +28,21 @@ export async function createFootballUAScraper(source: Source): Promise<void> {
         continue;
       }
 
-      const shouldContinue = await processArticleLink(page, link);
-      if (!shouldContinue) {
+      const result = await processArticleLink(page, link);
+
+      if (result.content) {
+        articles.push(result.content);
+        logger.info(`Scraped article: ${link} (Total: ${articles.length})`);
+      }
+
+      if (!result.shouldContinue) {
         logger.info('Article is older than 3 hours. Stopping processing.');
         break;
       }
     }
+
+    logger.info(`Scraping completed. Total articles scraped: ${articles.length}`);
+    return articles;
   } catch (error) {
     if (error instanceof Error) {
       logger.error(`Error scraping Football UA: ${error.message}`, error);
@@ -50,9 +62,9 @@ async function getMainNews(scraper: PuppeteerScraper): Promise<string[]> {
  * Process a single article link
  * @param page - Puppeteer page instance
  * @param link - URL to process
- * @returns boolean - true if should continue processing more links, false if should stop
+ * @returns ProcessArticleResult - Object containing the article content (if successful) and whether to continue processing
  */
-async function processArticleLink(page: Page | null, link: string): Promise<boolean> {
+async function processArticleLink(page: Page | null, link: string): Promise<ProcessArticleResult> {
   try {
     await page?.goto(link, {
       waitUntil: 'networkidle0',
@@ -65,24 +77,36 @@ async function processArticleLink(page: Page | null, link: string): Promise<bool
     );
 
     if (!isArticleRecentEnough(dateString || '')) {
-      return false;
+      return {
+        content: null,
+        shouldContinue: false,
+      };
     }
 
     const content = await page?.$eval(
       '.author-article',
       (el) => (el as unknown as { innerText: string }).innerText
     );
-    logger.debug('Article content:', content);
 
     // Wait a bit before navigating to next page (be respectful to the server)
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    return true; // Continue processing next articles
+    return {
+      content: {
+        link,
+        content: content || '',
+        dateString: dateString || '',
+      },
+      shouldContinue: true,
+    };
   } catch (error) {
     if (error instanceof Error) {
       logger.error(`Error scraping Football UA: ${error.message}`, error);
     }
-    return true; // Continue with next link even if one fails
+    return {
+      content: null,
+      shouldContinue: true, // Continue with next link even if one fails
+    };
   }
 }
 

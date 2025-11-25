@@ -4,7 +4,15 @@ import { getSources } from '@/modules/sources/source';
 
 // Mock the scrapper reader to avoid launching Puppeteer in tests
 jest.mock('@/modules/reader/strategies/scrapper-reader/scrapper-reader', () => ({
-  scrapperReader: jest.fn<() => Promise<void>>().mockResolvedValue(),
+  scrapperReader: jest.fn(() =>
+    Promise.resolve([
+      {
+        link: 'https://example.com',
+        content: 'Test content',
+        dateString: '2024-01-01',
+      },
+    ])
+  ),
 }));
 
 describe('Collector', () => {

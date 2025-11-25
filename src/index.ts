@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { start } from './modules/collector';
 import { logger } from './core/services/logger.service';
 
