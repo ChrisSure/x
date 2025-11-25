@@ -59,21 +59,19 @@ async function processArticleLink(page: Page | null, link: string): Promise<bool
       timeout: 30000,
     });
 
-    const dateString = await page.$eval(
+    const dateString = await page?.$eval(
       '.date',
       (el) => (el as unknown as { innerText: string }).innerText
     );
 
-    if (!isArticleRecentEnough(dateString)) {
+    if (!isArticleRecentEnough(dateString || '')) {
       return false;
     }
 
-    const content = await page.$eval(
+    const content = await page?.$eval(
       '.author-article',
       (el) => (el as unknown as { innerText: string }).innerText
     );
-
-    //console.log(content);
     logger.debug('Article content:', content);
 
     // Wait a bit before navigating to next page (be respectful to the server)
@@ -128,48 +126,106 @@ const UKRAINIAN_MONTHS: Record<string, number> = {
 };
 
 /**
- * Convert Ukrainian date string to Unix timestamp
+ * Split date string into date and time parts
  * @param dateString - Date string in format "23 ЛИСТОПАДА 2025, 19:58"
- * @returns Unix timestamp in milliseconds
+ * @returns Object with datePart and timePart
+ * @throws Error if format is invalid
  */
-function convertUkrainianDateToTimestamp(dateString: string): number {
-  // Parse format: "23 ЛИСТОПАДА 2025, 19:58"
+function splitDateString(dateString: string): { datePart: string; timePart: string } {
   const parts = dateString.trim().split(',');
   if (parts.length !== 2 || !parts[0] || !parts[1]) {
     throw new Error(`Invalid date format: ${dateString}`);
   }
 
-  const datePart = parts[0].trim(); // "23 ЛИСТОПАДА 2025"
-  const timePart = parts[1].trim(); // "19:58"
+  return {
+    datePart: parts[0].trim(),
+    timePart: parts[1].trim(),
+  };
+}
 
-  // Split date part
+/**
+ * Parse date part into day, month name, and year
+ * @param datePart - Date part string in format "23 ЛИСТОПАДА 2025"
+ * @returns Object with day, monthName, and year
+ * @throws Error if format is invalid
+ */
+function parseDatePart(datePart: string): { day: number; monthName: string; year: number } {
   const dateElements = datePart.split(' ');
   if (dateElements.length !== 3 || !dateElements[0] || !dateElements[1] || !dateElements[2]) {
     throw new Error(`Invalid date part format: ${datePart}`);
   }
 
-  const day = parseInt(dateElements[0], 10);
-  const monthName = dateElements[1].toUpperCase();
-  const year = parseInt(dateElements[2], 10);
+  return {
+    day: parseInt(dateElements[0], 10),
+    monthName: dateElements[1].toUpperCase(),
+    year: parseInt(dateElements[2], 10),
+  };
+}
 
-  // Get month number
-  const month = UKRAINIAN_MONTHS[monthName];
-  if (month === undefined) {
-    throw new Error(`Unknown Ukrainian month: ${monthName}`);
-  }
-
-  // Split time part
+/**
+ * Parse time part into hours and minutes
+ * @param timePart - Time part string in format "19:58"
+ * @returns Object with hours and minutes
+ * @throws Error if format is invalid
+ */
+function parseTimePart(timePart: string): { hours: number; minutes: number } {
   const timeElements = timePart.split(':');
   if (timeElements.length !== 2 || !timeElements[0] || !timeElements[1]) {
     throw new Error(`Invalid time format: ${timePart}`);
   }
 
-  const hours = parseInt(timeElements[0], 10);
-  const minutes = parseInt(timeElements[1], 10);
+  return {
+    hours: parseInt(timeElements[0], 10),
+    minutes: parseInt(timeElements[1], 10),
+  };
+}
 
-  // Create Date object and return timestamp
+/**
+ * Convert Ukrainian month name to month number (0-indexed for JavaScript Date)
+ * @param monthName - Ukrainian month name in uppercase (e.g., "ЛИСТОПАДА")
+ * @returns Month number (0-11)
+ * @throws Error if month name is unknown
+ */
+function getMonthNumber(monthName: string): number {
+  const month = UKRAINIAN_MONTHS[monthName];
+  if (month === undefined) {
+    throw new Error(`Unknown Ukrainian month: ${monthName}`);
+  }
+  return month;
+}
+
+/**
+ * Create a Date object and return its timestamp
+ * @param year - Year
+ * @param month - Month (0-indexed)
+ * @param day - Day of month
+ * @param hours - Hours (0-23)
+ * @param minutes - Minutes (0-59)
+ * @returns Unix timestamp in milliseconds
+ */
+function createTimestamp(
+  year: number,
+  month: number,
+  day: number,
+  hours: number,
+  minutes: number
+): number {
   const date = new Date(year, month, day, hours, minutes, 0, 0);
   return date.getTime();
+}
+
+/**
+ * Convert Ukrainian date string to Unix timestamp
+ * @param dateString - Date string in format "23 ЛИСТОПАДА 2025, 19:58"
+ * @returns Unix timestamp in milliseconds
+ */
+function convertUkrainianDateToTimestamp(dateString: string): number {
+  const { datePart, timePart } = splitDateString(dateString);
+  const { day, monthName, year } = parseDatePart(datePart);
+  const { hours, minutes } = parseTimePart(timePart);
+  const month = getMonthNumber(monthName);
+
+  return createTimestamp(year, month, day, hours, minutes);
 }
 
 /**
