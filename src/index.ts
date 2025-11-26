@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { start } from './modules/collector';
-import { logger } from './core/services/logger.service';
+import { logger } from './core/services/logger/logger.service';
 
 async function main(): Promise<void> {
   await start();

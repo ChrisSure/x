@@ -1,5 +1,5 @@
 export type { ArticleContent, ProcessArticleResult } from './article.interface';
-export { openAIProvider, OpenAIProvider, OpenAIProviderError } from '../../providers';
+export { openAIProvider, OpenAIProvider, OpenAIProviderError } from '../providers';
 export type {
   ChatCompletionRequest,
   ChatCompletionResponse,
@@ -18,4 +18,4 @@ export type {
   ImageSize,
   ImageQuality,
   ImageStyle,
-} from '../../providers';
+} from '../providers';

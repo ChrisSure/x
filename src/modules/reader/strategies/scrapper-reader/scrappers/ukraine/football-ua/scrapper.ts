@@ -3,11 +3,11 @@ import {
   EXCLUDE_LINKS,
   MAIN_NEWS_CLASS,
   THREE_HOURS_IN_MS,
-} from '@/modules/reader/strategies/scrapper-reader/scrappers/ukraine/football-ua/core/constants/constants';
+} from '@/modules/reader/strategies/scrapper-reader/scrappers/ukraine/football-ua/constants/constants';
 import { ArticleContent, ProcessArticleResult } from '@/core/interfaces';
 import { PuppeteerScraper } from '@/modules/reader/strategies/scrapper-reader/providers/puppeteer-scraper';
 import { Page } from 'puppeteer';
-import { logger } from '@/core/services/logger.service';
+import { logger } from '@/core/services/logger/logger.service';
 
 export async function createFootballUAScraper(source: Source): Promise<ArticleContent[]> {
   const scraper = new PuppeteerScraper(source.url);
@@ -32,16 +32,13 @@ export async function createFootballUAScraper(source: Source): Promise<ArticleCo
 
       if (result.content) {
         articles.push(result.content);
-        logger.info(`Scraped article: ${link} (Total: ${articles.length})`);
       }
 
       if (!result.shouldContinue) {
-        logger.info('Article is older than 3 hours. Stopping processing.');
         break;
       }
     }
 
-    logger.info(`Scraping completed. Total articles scraped: ${articles.length}`);
     return articles;
   } catch (error) {
     if (error instanceof Error) {

@@ -33,3 +33,10 @@ Return ONLY a valid JSON object (no markdown, no code blocks, just the JSON):
   "title": "Clean article title",
   "content": "Cleaned and transformed article body with all metadata removed but context preserved"
 }`;
+
+export const BASIC_PROMPT =
+  'Here is the raw article content. Clean it and REWRITE IT DEEPLY while keeping the context:\n\n';
+
+export const TEMPERATURA_VALUE = 0.3;
+
+export const MAX_TOKENS_VALUE = 4096;

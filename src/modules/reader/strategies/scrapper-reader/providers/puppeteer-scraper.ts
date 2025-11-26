@@ -1,5 +1,5 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
-import { logger } from '@/core/services/logger.service';
+import { logger } from '@/core/services/logger/logger.service';
 
 /**
  * PuppeteerScraper class for web scraping using Puppeteer

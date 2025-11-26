@@ -24,7 +24,7 @@ export type {
   ImageSize,
   ImageQuality,
   ImageStyle,
-} from './core/interfaces';
+} from './interfaces';
 
 /**
  * Singleton instance of OpenAI provider
@@ -32,7 +32,7 @@ export type {
  *
  * @example
  * ```typescript
- * import { openAIProvider } from '@/core/providers/ai/openai';
+ * import { openAIProvider } from '@/constants/providers/ai/openai';
  *
  * const response = await openAIProvider.chat({
  *   messages: [{ role: 'user', content: 'Hello!' }]

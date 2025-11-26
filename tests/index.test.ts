@@ -8,7 +8,7 @@ beforeAll(() => {
 });
 
 // Mock the OpenAI provider to avoid actual API calls
-jest.mock('@/providers/ai/openai', () => ({
+jest.mock('@/core/providers', () => ({
   openAIProvider: {
     chat: jest.fn(() =>
       Promise.resolve({

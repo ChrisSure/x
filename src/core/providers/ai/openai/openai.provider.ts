@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { logger } from '@/core/services/logger.service';
+import { logger } from '@/core/services/logger/logger.service';
 import {
   ChatCompletionRequest,
   ChatCompletionResponse,
@@ -7,7 +7,7 @@ import {
   CreateEmbeddingResponse,
   GenerateImageRequest,
   GenerateImageResponse,
-} from './core/interfaces';
+} from './interfaces';
 
 /**
  * Custom error class for OpenAI provider errors
