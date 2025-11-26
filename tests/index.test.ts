@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeAll } from '@jest/globals';
-import { start } from '@/modules/collector';
-import { getSources } from '@/modules/sources/source';
+import { CollectorModule } from '@/modules/collector';
+import { SourceModule } from '@/modules/sources/source';
+import { Source } from '@/modules/sources/interfaces/source.interface';
 
 // Set up environment variables before any imports that need them
 beforeAll(() => {
@@ -41,49 +42,73 @@ jest.mock('@/core/providers', () => ({
   OpenAIProviderError: class OpenAIProviderError extends Error {},
 }));
 
-// Mock the scrapper reader to avoid launching Puppeteer in tests
-jest.mock('@/modules/reader/strategies/scrapper-reader/scrapper-reader', () => ({
-  scrapperReader: jest.fn(() =>
-    Promise.resolve([
-      {
-        link: 'https://example.com',
-        content: 'Test content',
-        dateString: '2024-01-01',
-      },
-    ])
-  ),
-}));
+// Mock the Puppeteer scraper to avoid launching browser in tests
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+jest.mock('@/modules/reader/strategies/scrapper-reader/providers/puppeteer-scraper', () => {
+  const mockJest = jest as any;
+  return {
+    PuppeteerScraper: mockJest.fn().mockImplementation(() => {
+      return {
+        initialize: mockJest.fn().mockResolvedValue(undefined),
+        waitForClass: mockJest.fn().mockResolvedValue(undefined),
+        getElementsByClass: mockJest
+          .fn()
+          .mockResolvedValue(['<a href="https://example.com">Test</a>']),
+        getPage: mockJest.fn().mockReturnValue({
+          goto: mockJest.fn().mockResolvedValue(undefined),
+          $eval: mockJest
+            .fn()
+            .mockResolvedValueOnce('24 ЛИСТОПАДА 2025, 20:16') // First call for date
+            .mockResolvedValueOnce('Test content'), // Second call for content
+        }),
+        close: mockJest.fn().mockResolvedValue(undefined),
+      };
+    }),
+  };
+});
+/* eslint-enable @typescript-eslint/no-unsafe-assignment */
+/* eslint-enable @typescript-eslint/no-unsafe-call */
+/* eslint-enable @typescript-eslint/no-unsafe-member-access */
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
-describe('Collector', () => {
+describe('CollectorModule', () => {
   describe('start', () => {
     it('should execute without errors', async () => {
-      await expect(start()).resolves.not.toThrow();
+      const collectorModule = new CollectorModule();
+      await expect(collectorModule.start()).resolves.not.toThrow();
     });
 
-    it('should be an async function', () => {
-      const result = start();
+    it('should return a promise', () => {
+      const collectorModule = new CollectorModule();
+      const result = collectorModule.start();
       expect(result).toBeInstanceOf(Promise);
     });
   });
 });
 
-describe('Sources', () => {
+describe('SourceModule', () => {
   describe('getSources', () => {
     it('should return an array of sources', () => {
-      const result = getSources();
+      const sourceModule = new SourceModule();
+      const result = sourceModule.getSources();
       expect(Array.isArray(result)).toBe(true);
     });
 
     it('should return Football UA source', () => {
-      const result = getSources();
-      const footballUA = result.find((source) => source.name === 'Football UA');
+      const sourceModule = new SourceModule();
+      const result = sourceModule.getSources();
+      const footballUA = result.find((source: Source) => source.name === 'Football UA');
       expect(footballUA).toBeDefined();
       expect(footballUA?.url).toBe('https://football.ua/ukraine.html');
     });
 
     it('should return sources with valid structure', () => {
-      const result = getSources();
-      result.forEach((source) => {
+      const sourceModule = new SourceModule();
+      const result = sourceModule.getSources();
+      result.forEach((source: Source) => {
         expect(source).toHaveProperty('id');
         expect(source).toHaveProperty('name');
         expect(source).toHaveProperty('url');

@@ -1,9 +1,10 @@
 import 'dotenv/config';
-import { start } from './modules/collector';
+import { CollectorModule } from './modules/collector';
 import { logger } from './core/services/logger/logger.service';
 
 async function main(): Promise<void> {
-  await start();
+  const collectorModule = new CollectorModule();
+  await collectorModule.start();
 }
 
 main().catch((error: Error) => {
