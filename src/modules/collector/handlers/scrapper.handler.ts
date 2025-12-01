@@ -23,7 +23,7 @@ export class ScrapperHandler {
    * @param resource - Source to scrape
    * @returns Cleaned article content or null
    */
-  async handle(resource: Source): Promise<Nullable<ArticleContent>> {
+  async handle(resource: Source): Promise<Nullable<ArticleContent[]>> {
     const data = await this.readerStrategy.read(resource);
     if (data) {
       return await this.collectScrapedData(data);
@@ -34,9 +34,11 @@ export class ScrapperHandler {
   /**
    * Process scraped data and clean with AI
    * @param data - Array of scraped articles
-   * @returns Cleaned article content or null
+   * @returns Cleaned array of articles content or null
    */
-  private async collectScrapedData(data: ArticleContent[]): Promise<Nullable<ArticleContent>> {
+  private async collectScrapedData(data: ArticleContent[]): Promise<Nullable<ArticleContent[]>> {
+    const results: ArticleContent[] = [];
+
     for (const article of data) {
       if (!article) {
         continue;
@@ -44,15 +46,15 @@ export class ScrapperHandler {
 
       try {
         const cleaned = await this.aiService.cleanContent(article.content || '');
+
         if (cleaned) {
-          return {
+          results.push({
             title: cleaned.title,
             link: article.link,
             dateString: article.dateString,
             content: cleaned.content,
-          };
+          });
         }
-        return null;
       } catch (error) {
         logger.error('Failed to clean article', {
           link: article.link,
@@ -61,6 +63,6 @@ export class ScrapperHandler {
       }
     }
 
-    return null;
+    return results.length > 0 ? results : null;
   }
 }

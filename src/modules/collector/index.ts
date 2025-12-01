@@ -26,8 +26,8 @@ export class CollectorModule {
     const resources: Source[] = this.sourceModule.getSources();
 
     for (const resource of resources) {
-      const article = await this.processResource(resource);
-      logger.info('Article', article);
+      const articles = await this.processResource(resource);
+      logger.info('Article', articles);
     }
   }
 
@@ -36,7 +36,7 @@ export class CollectorModule {
    * @param resource - Source to process
    * @returns Processed article content or null
    */
-  private async processResource(resource: Source): Promise<Nullable<ArticleContent>> {
+  private async processResource(resource: Source): Promise<Nullable<ArticleContent[]>> {
     switch (resource.reader) {
       case Reader.Scrapper:
         return await this.scrapperHandler.handle(resource);
