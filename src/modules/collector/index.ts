@@ -1,3 +1,4 @@
+import cron from 'node-cron';
 import { Source } from '@/modules/sources/interfaces/source.interface';
 import { SourceModule } from '@/modules/sources/source';
 import { Reader } from '@/modules/sources/enums/reader.enum';
@@ -5,6 +6,7 @@ import { logger } from '@/core/services/logger/logger.service';
 import { ScrapperHandler } from '@/modules/collector/handlers/scrapper.handler';
 import { ArticleContent } from '@/core/interfaces';
 import { Nullable } from '@/core/types/nullable.type';
+import { Status } from '@/modules/sources/enums/status.enum';
 
 /**
  * Main collector service that orchestrates content collection from various sources
@@ -22,12 +24,17 @@ export class CollectorModule {
    * Start the collection process
    * Fetches sources and processes each one based on its reader type
    */
-  async start(): Promise<void> {
+  start(): void {
     const resources: Source[] = this.sourceModule.getSources();
 
     for (const resource of resources) {
-      const articles = await this.processResource(resource);
-      logger.info('Article', articles);
+      if (resource.status === Status.Active) {
+        const cronExpression = `0 0 */${resource.period} * * *`;
+        cron.schedule(cronExpression, async () => {
+          const articles = await this.processResource(resource);
+          logger.info('Article', articles);
+        });
+      }
     }
   }
 

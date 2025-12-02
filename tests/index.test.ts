@@ -8,6 +8,15 @@ beforeAll(() => {
   process.env['OPENAI_API_KEY'] = 'test-api-key';
 });
 
+// Mock node-cron to prevent actual cron jobs from running in tests
+jest.mock('node-cron', () => ({
+  schedule: jest.fn(() => ({
+    start: jest.fn(),
+    stop: jest.fn(),
+    destroy: jest.fn(),
+  })),
+}));
+
 // Mock the OpenAI provider to avoid actual API calls
 jest.mock('@/core/providers', () => ({
   openAIProvider: {
@@ -76,15 +85,15 @@ jest.mock('@/modules/reader/strategies/scrapper-reader/providers/puppeteer-scrap
 
 describe('CollectorModule', () => {
   describe('start', () => {
-    it('should execute without errors', async () => {
+    it('should execute without errors', () => {
       const collectorModule = new CollectorModule();
-      await expect(collectorModule.start()).resolves.not.toThrow();
+      expect(() => collectorModule.start()).not.toThrow();
     });
 
-    it('should return a promise', () => {
+    it('should return void', () => {
       const collectorModule = new CollectorModule();
       const result = collectorModule.start();
-      expect(result).toBeInstanceOf(Promise);
+      expect(result).toBeUndefined();
     });
   });
 });
