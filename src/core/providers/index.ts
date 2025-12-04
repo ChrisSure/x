@@ -3,6 +3,7 @@
  * Exports all application providers
  */
 
+// OpenAI Provider
 export { openAIProvider, OpenAIProvider, OpenAIProviderError } from './ai/openai';
 export type {
   ChatCompletionRequest,
@@ -23,3 +24,18 @@ export type {
   ImageQuality,
   ImageStyle,
 } from './ai/openai';
+
+// MySQL Provider
+export { mySQLProvider, MySQLProvider, MySQLProviderError } from './mysql';
+export type {
+  MySQLConfig,
+  QueryResult,
+  PoolStats,
+  QueryParams,
+  MySQLQueryResult,
+  Pool,
+  PoolConnection,
+  RowDataPacket,
+  OkPacket,
+  ResultSetHeader,
+} from './mysql';

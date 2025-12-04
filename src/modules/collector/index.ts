@@ -28,8 +28,17 @@ export class CollectorModule {
     const resources: Source[] = this.sourceModule.getSources();
 
     for (const resource of resources) {
+      /*if (resource.status === Status.Active) {
+        const cronExpression = `0 0 *!/${resource.period} * * *`;
+        cron.schedule(cronExpression, async () => {
+          const articles = await this.processResource(resource);
+          logger.info('Article', articles);
+        });
+      }*/
+
+      // Testing purpose
       if (resource.status === Status.Active) {
-        const cronExpression = `0 0 */${resource.period} * * *`;
+        const cronExpression = '0 */2 * * * *';
         cron.schedule(cronExpression, async () => {
           const articles = await this.processResource(resource);
           logger.info('Article', articles);

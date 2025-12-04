@@ -107,12 +107,20 @@ export class FootballUAScraper {
         (el) => (el as unknown as { innerText: string }).innerText
       );
 
+      const imgLink: string | null = await page.$eval(
+        '.article-photo img',
+
+        (el) =>
+          (el as unknown as { getAttribute: (name: string) => string | null }).getAttribute('src')
+      );
+
       // Wait a bit before navigating to next page (be respectful to the server)
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       return {
         content: {
           link,
+          imgLink: imgLink ?? undefined,
           content: content || '',
           dateString: dateString || '',
         },

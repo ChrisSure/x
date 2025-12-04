@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "dotenv": "^17.2.3",
+    "mysql2": "^3.15.3",
     "node-cron": "^4.2.1",
     "openai": "^6.9.1",
     "pino": "^10.1.0",

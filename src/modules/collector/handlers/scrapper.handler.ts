@@ -51,6 +51,7 @@ export class ScrapperHandler {
           results.push({
             title: cleaned.title,
             link: article.link,
+            imgLink: article.imgLink,
             dateString: article.dateString,
             content: cleaned.content,
           });
