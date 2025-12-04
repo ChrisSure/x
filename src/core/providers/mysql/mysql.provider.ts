@@ -9,7 +9,7 @@ import type {
   Pool,
   PoolConnection,
   ResultSetHeader,
-} from './interfaces';
+} from './interfaces/types';
 
 /**
  * Custom error class for MySQL provider errors

@@ -59,3 +59,8 @@ export type MySQLQueryResult =
  * Re-export mysql2 types for convenience
  */
 export type { Pool, PoolConnection, RowDataPacket, OkPacket, ResultSetHeader };
+
+/**
+ * Re-export database entity interfaces
+ */
+export type { DatabaseArticle } from './database-article.interface';

@@ -1,11 +1,19 @@
 import { describe, it, expect, jest, beforeAll } from '@jest/globals';
+
+// Set up environment variables before any imports that need them
+process.env['OPENAI_API_KEY'] = 'test-api-key';
+process.env['DB_HOST'] = 'localhost';
+process.env['DB_PORT'] = '3306';
+process.env['DB_USER'] = 'test-user';
+process.env['DB_PASSWORD'] = 'test-password';
+process.env['DB_NAME'] = 'test-database';
+
 import { CollectorModule } from '@/modules/collector';
 import { SourceModule } from '@/modules/sources/source';
 import { Source } from '@/modules/sources/interfaces/source.interface';
 
-// Set up environment variables before any imports that need them
 beforeAll(() => {
-  process.env['OPENAI_API_KEY'] = 'test-api-key';
+  // Environment variables already set above
 });
 
 // Mock node-cron to prevent actual cron jobs from running in tests
@@ -49,6 +57,30 @@ jest.mock('@/core/providers', () => ({
   },
   OpenAIProvider: jest.fn(),
   OpenAIProviderError: class OpenAIProviderError extends Error {},
+}));
+
+// Mock the MySQL provider to avoid database connections in tests
+jest.mock('@/core/providers/mysql', () => ({
+  mySQLProvider: {
+    query: jest.fn(() =>
+      Promise.resolve({
+        data: [],
+        fields: [],
+      })
+    ),
+    execute: jest.fn(() =>
+      Promise.resolve({
+        data: { affectedRows: 1, insertId: 1 },
+        fields: [],
+      })
+    ),
+  },
+  articlesRepository: {
+    getLastDayPublishedArticles: jest.fn(() => Promise.resolve(null)),
+  },
+  MySQLProvider: jest.fn(),
+  MySQLProviderError: class MySQLProviderError extends Error {},
+  ArticlesRepository: jest.fn(),
 }));
 
 // Mock the Puppeteer scraper to avoid launching browser in tests

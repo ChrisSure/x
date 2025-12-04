@@ -17,7 +17,8 @@ export type {
   RowDataPacket,
   OkPacket,
   ResultSetHeader,
-} from './interfaces';
+  DatabaseArticle,
+} from './interfaces/types';
 
 /**
  * Singleton instance of MySQL provider
@@ -34,3 +35,8 @@ export type {
  * ```
  */
 export const mySQLProvider = new MySQLProvider();
+
+/**
+ * Re-export repositories
+ */
+export { ArticlesRepository, articlesRepository } from './repositories/articles.repository';
