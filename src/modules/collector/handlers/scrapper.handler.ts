@@ -1,6 +1,4 @@
 import { ArticleContent } from '@/core/interfaces';
-import { AiBasicFormatService } from '@/modules/reader/services/ai-basic-format/ai-basic-format.service';
-import { logger } from '@/core/services/logger/logger.service';
 import { ScrapperReaderStrategy } from '@/modules/reader/strategies/scrapper-reader/scrapper-reader';
 import { Source } from '@/modules/sources/interfaces/source.interface';
 import { Nullable } from '@/core/types/nullable.type';
@@ -10,12 +8,10 @@ import { Nullable } from '@/core/types/nullable.type';
  * Orchestrates scraping and AI cleaning operations
  */
 export class ScrapperHandler {
-  private aiService: AiBasicFormatService;
-  private readerStrategy: ScrapperReaderStrategy;
+  private scrapperReaderStrategy: ScrapperReaderStrategy;
 
   constructor() {
-    this.aiService = new AiBasicFormatService();
-    this.readerStrategy = new ScrapperReaderStrategy();
+    this.scrapperReaderStrategy = new ScrapperReaderStrategy();
   }
 
   /**
@@ -24,46 +20,6 @@ export class ScrapperHandler {
    * @returns Cleaned article content or null
    */
   async handle(resource: Source): Promise<Nullable<ArticleContent[]>> {
-    const data = await this.readerStrategy.read(resource);
-    if (data) {
-      return await this.collectScrapedData(data);
-    }
-    return null;
-  }
-
-  /**
-   * Process scraped data and clean with AI
-   * @param data - Array of scraped articles
-   * @returns Cleaned array of articles content or null
-   */
-  private async collectScrapedData(data: ArticleContent[]): Promise<Nullable<ArticleContent[]>> {
-    const results: ArticleContent[] = [];
-
-    for (const article of data) {
-      if (!article) {
-        continue;
-      }
-
-      try {
-        const cleaned = await this.aiService.cleanContent(article.content || '');
-
-        if (cleaned) {
-          results.push({
-            title: cleaned.title,
-            link: article.link,
-            imgLink: article.imgLink,
-            dateString: article.dateString,
-            content: cleaned.content,
-          });
-        }
-      } catch (error) {
-        logger.error('Failed to clean article', {
-          link: article.link,
-          error: error instanceof Error ? error.message : error,
-        });
-      }
-    }
-
-    return results.length > 0 ? results : null;
+    return await this.scrapperReaderStrategy.read(resource);
   }
 }

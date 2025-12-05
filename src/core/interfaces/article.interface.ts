@@ -2,11 +2,11 @@
  * Represents the content of a scraped article
  */
 export interface ArticleContent {
+  title: string;
   link: string;
   content: string;
-  dateString: string;
-  title?: string;
-  imgLink?: string;
+  created: number;
+  image?: string;
 }
 
 /**

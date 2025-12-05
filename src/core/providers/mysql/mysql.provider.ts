@@ -127,16 +127,7 @@ export class MySQLProvider {
         throw new MySQLProviderError('SQL query cannot be empty', 'INVALID_QUERY');
       }
 
-      logger.info('Executing MySQL query', {
-        sql: sql.substring(0, 100), // Log first 100 chars
-        paramsCount: params?.length || 0,
-      });
-
       const [rows, fields] = await this.pool!.query<T>(sql, params);
-
-      logger.info('Query executed successfully', {
-        rowCount: Array.isArray(rows) ? rows.length : 1,
-      });
 
       return {
         data: rows,

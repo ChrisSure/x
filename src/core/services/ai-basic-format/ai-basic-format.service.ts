@@ -1,14 +1,14 @@
 import { logger } from '@/core/services/logger/logger.service';
+import { openAIProvider } from '@/core/providers';
+import { Nullable } from '@/core/types/nullable.type';
+import { AiModelEnum } from '@/core/enums/ai-model.enum';
+import { CleanedArticleContent } from '@/core/services/ai-basic-format/interfaces/cleaned-article-context.interface';
 import {
   BASIC_PROMPT,
   CONTENT_CLEANING_SYSTEM_PROMPT,
   MAX_TOKENS_VALUE,
   TEMPERATURA_VALUE,
-} from '@/modules/reader/services/ai-basic-format/constants/ai-basic-format-service.constants';
-import { openAIProvider } from '@/core/providers';
-import { CleanedArticleContent } from '@/modules/reader/services/ai-basic-format/interfaces/cleaned-article-context.interface';
-import { Nullable } from '@/core/types/nullable.type';
-import { AiModelEnum } from '@/core/enums/ai-model.enum';
+} from '@/core/services/ai-basic-format/constants/ai-basic-format-service.constants';
 
 /**
  * AI-powered service to clean article content by removing metadata and extraneous information

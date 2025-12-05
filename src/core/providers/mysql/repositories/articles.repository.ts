@@ -23,10 +23,6 @@ export class ArticlesRepository {
         ['Published', formattedDate]
       );
 
-      logger.info('Result', {
-        result,
-      });
-
       if (!result.data || result.data.length === 0) {
         return null;
       }

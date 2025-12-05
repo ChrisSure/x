@@ -8,21 +8,7 @@ import {
   GenerateImageRequest,
   GenerateImageResponse,
 } from './interfaces';
-
-/**
- * Custom error class for OpenAI provider errors
- */
-export class OpenAIProviderError extends Error {
-  constructor(
-    message: string,
-    public readonly code?: string,
-    public readonly statusCode?: number
-  ) {
-    super(message);
-    this.name = 'OpenAIProviderError';
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
+import { OpenAIProviderError } from '@/modules/analyzer/services/analyze-ai/classes/open-ai-provider-error';
 
 /**
  * OpenAI Provider Service
@@ -200,28 +186,15 @@ export class OpenAIProvider {
     try {
       const { input, options = {} } = request;
 
-      // Validate input
       if (!input || (Array.isArray(input) && input.length === 0)) {
         throw new OpenAIProviderError('Input cannot be empty', 'INVALID_INPUT');
       }
-
-      logger.info('Creating embeddings', {
-        model: options.model || 'text-embedding-3-small',
-        inputType: Array.isArray(input) ? 'array' : 'string',
-        inputCount: Array.isArray(input) ? input.length : 1,
-      });
 
       const response = await this.client.embeddings.create({
         model: options.model || 'text-embedding-3-small',
         input,
         encoding_format: options.encodingFormat,
         dimensions: options.dimensions,
-      });
-
-      logger.info('Embeddings created successfully', {
-        model: response.model,
-        embeddingCount: response.data.length,
-        tokensUsed: response.usage.total_tokens,
       });
 
       return {

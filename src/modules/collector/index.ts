@@ -1,11 +1,11 @@
 import cron from 'node-cron';
 import { Source } from '@/modules/sources/interfaces/source.interface';
 import { SourceModule } from '@/modules/sources/source';
-//import { Reader } from '@/modules/sources/enums/reader.enum';
+import { Reader } from '@/modules/sources/enums/reader.enum';
 import { logger } from '@/core/services/logger/logger.service';
-//import { ScrapperHandler } from '@/modules/collector/handlers/scrapper.handler';
-//import { ArticleContent } from '@/core/interfaces';
-//import { Nullable } from '@/core/types/nullable.type';
+import { ScrapperHandler } from '@/modules/collector/handlers/scrapper.handler';
+import { ArticleContent } from '@/core/interfaces';
+import { Nullable } from '@/core/types/nullable.type';
 import { Status } from '@/modules/sources/enums/status.enum';
 import { AnalyzerModule } from '@/modules/analyzer/analyzer';
 
@@ -15,12 +15,12 @@ import { AnalyzerModule } from '@/modules/analyzer/analyzer';
 export class CollectorModule {
   private sourceModule: SourceModule;
   private analyzerModule: AnalyzerModule;
-  //private scrapperHandler: ScrapperHandler;
+  private scrapperHandler: ScrapperHandler;
 
   constructor() {
     this.sourceModule = new SourceModule();
     this.analyzerModule = new AnalyzerModule();
-    //this.scrapperHandler = new ScrapperHandler();
+    this.scrapperHandler = new ScrapperHandler();
   }
 
   /**
@@ -31,34 +31,23 @@ export class CollectorModule {
     const resources: Source[] = this.sourceModule.getSources();
 
     for (const resource of resources) {
-      /*if (resource.status === Status.Active) {
-        const cronExpression = `0 0 *!/${resource.period} * * *`;
+      if (resource.status === Status.Active) {
+        //const cronExpression = `0 0 *!/${resource.period} * * *`;
+        const cronExpression = '0 */2 * * * *';
         cron.schedule(cronExpression, async () => {
           const articles = await this.processResource(resource);
-          logger.info('Article', articles);
-        });
-      }*/
-
-      // Testing purpose
-      if (resource.status === Status.Active) {
-        const cronExpression = '0 */1 * * * *';
-        cron.schedule(cronExpression, async () => {
-          //const articles = await this.processResource(resource);
-          //logger.info('Article', articles);
-
-          const analyzedArticles = await this.analyzerModule.startAnalyze([]);
-
+          const analyzedArticles = await this.analyzerModule.startAnalyze(articles);
           logger.info('Analyzed Articles', analyzedArticles);
         });
       }
     }
   }
 
-  /*/!**
+  /**
    * Process a single resource based on its reader type
    * @param resource - Source to process
    * @returns Processed article content or null
-   *!/
+   */
   private async processResource(resource: Source): Promise<Nullable<ArticleContent[]>> {
     switch (resource.reader) {
       case Reader.Scrapper:
@@ -71,5 +60,5 @@ export class CollectorModule {
         break;
     }
     return null;
-  }*/
+  }
 }

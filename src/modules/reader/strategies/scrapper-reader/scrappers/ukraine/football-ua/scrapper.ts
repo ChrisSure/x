@@ -95,7 +95,9 @@ export class FootballUAScraper {
         (el) => (el as unknown as { innerText: string }).innerText
       );
 
-      if (!this.isArticleRecentEnough(dateString || '')) {
+      const created = this.convertUkrainianDateToTimestamp(dateString);
+
+      if (!this.isArticleRecentEnough(created)) {
         return {
           content: null,
           shouldContinue: false,
@@ -104,6 +106,11 @@ export class FootballUAScraper {
 
       const content = await page.$eval(
         '.author-article',
+        (el) => (el as unknown as { innerText: string }).innerText
+      );
+
+      const title = await page.$eval(
+        '.author-article h1',
         (el) => (el as unknown as { innerText: string }).innerText
       );
 
@@ -119,10 +126,11 @@ export class FootballUAScraper {
 
       return {
         content: {
+          title,
           link,
-          imgLink: imgLink ?? undefined,
+          image: imgLink ?? undefined,
           content: content || '',
-          dateString: dateString || '',
+          created,
         },
         shouldContinue: true,
       };
@@ -148,13 +156,12 @@ export class FootballUAScraper {
 
   /**
    * Check if article date is within the acceptable time limit
-   * @param dateString - Date string in format "23 ЛИСТОПАДА 2025, 19:58"
+   * @param created - Date timestamp
    * @returns true if article is recent enough (less than 3 hours old), false otherwise
    */
-  private isArticleRecentEnough(dateString: string): boolean {
-    const timestamp = this.convertUkrainianDateToTimestamp(dateString);
+  private isArticleRecentEnough(created: number): boolean {
     const currentTime = Date.now();
-    const timeDiff = currentTime - timestamp;
+    const timeDiff = currentTime - created;
     return timeDiff < THREE_HOURS_IN_MS;
   }
 
