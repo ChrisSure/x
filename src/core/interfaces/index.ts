@@ -1,5 +1,5 @@
 export type { ArticleContent, ProcessArticleResult } from './article.interface';
-export { openAIProvider, OpenAIProvider, OpenAIProviderError } from '../providers';
+export { openAIProvider, OpenAIProvider } from '../providers';
 export type {
   ChatCompletionRequest,
   ChatCompletionResponse,

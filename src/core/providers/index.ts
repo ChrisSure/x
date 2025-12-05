@@ -4,7 +4,7 @@
  */
 
 // OpenAI Provider
-export { openAIProvider, OpenAIProvider, OpenAIProviderError } from './ai/openai';
+export { openAIProvider, OpenAIProvider } from './ai/openai';
 export type {
   ChatCompletionRequest,
   ChatCompletionResponse,
