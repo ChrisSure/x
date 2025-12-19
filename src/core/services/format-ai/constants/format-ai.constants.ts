@@ -23,6 +23,8 @@ REWRITING REQUIREMENTS:
 
 CONTENT CLEANING (for the content field):
 Remove the following elements:
+- Article metadata (category names, region labels like "УКРАЇНА", "СПОРТ", etc.)
+- Publication dates and timestamps at the beginning of content
 - Unnecessary URLs and links embedded in text
 - Advertising content and promotional phrases
 - "Read also", "Subscribe", "Follow us", "Click here" type calls to action
@@ -32,12 +34,18 @@ Remove the following elements:
 - Social media sharing prompts
 - Author bio sections at the end
 - Website-specific UI elements
+- Extra newlines and whitespace at the start of content
 
 Keep only:
-- The core article content
+- The core article content (start with the actual article text, not metadata)
 - Essential facts and information
 - Relevant context and details
 - Proper names and specific data
+
+IMPORTANT:
+- Begin the content with the actual article text, not with metadata, dates, or category labels
+- Remove any prefixes like "УКРАЇНА", "17 ГРУДНЯ 2025, 10:41" or similar metadata headers
+- The first sentence should be part of the actual article story
 
 TELEGRAM FORMATTING:
 Format the content field using Telegram Markdown:

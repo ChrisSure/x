@@ -2,7 +2,11 @@ import { mySQLProvider } from '@/core/providers/mysql';
 import { Nullable } from '@/core/types/nullable.type';
 import { logger } from '@/core/services/logger/logger.service';
 import { DatabaseArticle } from '@/core/providers/mysql';
-import { GET_LAST_DAY_PUBLISHED_ARTICLES_QUERY } from '../constants/sql-queries.constants';
+import { ArticleContent } from '@/core/interfaces';
+import {
+  GET_LAST_DAY_PUBLISHED_ARTICLES_QUERY,
+  INSERT_ARTICLE_QUERY,
+} from '../constants/sql-queries.constants';
 
 /**
  * Repository for articles database operations
@@ -35,6 +39,69 @@ export class ArticlesRepository {
       });
       return null;
     }
+  }
+
+  /**
+   * Saves multiple articles to the database
+   * @param articles - Array of articles to save
+   * @returns Promise resolving to true if successful, false otherwise
+   */
+  async saveArticles(articles: ArticleContent[]): Promise<boolean> {
+    if (!articles || articles.length === 0) {
+      logger.warn('No articles to save');
+      return false;
+    }
+
+    try {
+      logger.info(`Saving ${articles.length} articles to database`);
+
+      let successCount = 0;
+
+      for (const article of articles) {
+        try {
+          const createdDate = this.timestampToMySQLDateTime(article.created);
+
+          await mySQLProvider.execute(INSERT_ARTICLE_QUERY, [
+            article.link,
+            article.content,
+            createdDate,
+            article.title,
+            article.image || null,
+            'Published',
+          ]);
+
+          successCount++;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          logger.error('Failed to save individual article', {
+            error: errorMessage,
+            link: article.link,
+            timestampValue: article.created,
+          });
+          // Continue with other articles even if one fails
+        }
+      }
+
+      logger.info(`Successfully saved ${successCount}/${articles.length} articles`);
+      return successCount > 0;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to save articles to database', {
+        error: errorMessage,
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Converts timestamp to MySQL datetime format
+   * @param timestamp - Timestamp in milliseconds (from Date.getTime())
+   * @returns Formatted date string in MySQL datetime format (YYYY-MM-DD HH:MM:SS)
+   */
+  private timestampToMySQLDateTime(timestamp: number): string {
+    // Timestamp is already in milliseconds from Date.getTime()
+    const date = new Date(timestamp);
+    return date.toISOString().slice(0, 19).replace('T', ' ');
   }
 
   /**
