@@ -21,7 +21,7 @@ export class AnalyzerModule {
    * @param articles - Optional array of articles to analyze. If not provided, fetches from database
    * @returns Promise with array of articles or null
    */
-  async startAnalyze(articles?: Nullable<ArticleContent[]>): Promise<Nullable<ArticleContent[]>> {
+  async startAnalyze(articles: ArticleContent[]): Promise<Nullable<ArticleContent[]>> {
     const lastArticles = await this.getLastArticles();
 
     lastArticles?.forEach((article) => {
@@ -30,7 +30,7 @@ export class AnalyzerModule {
       });
     });
 
-    if (!lastArticles || lastArticles.length === 0 || !articles || articles.length === 0) {
+    if (!lastArticles || lastArticles.length === 0) {
       logger.info('No articles to filter or no previous articles to compare against');
       return articles || null;
     }

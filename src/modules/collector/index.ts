@@ -8,6 +8,7 @@ import { ArticleContent } from '@/core/interfaces';
 import { Nullable } from '@/core/types/nullable.type';
 import { Status } from '@/modules/sources/enums/status.enum';
 import { AnalyzerModule } from '@/modules/analyzer/analyzer';
+import { FormatterModule } from '@/modules/formatter/formatter';
 
 /**
  * Main collector service that orchestrates content collection from various sources
@@ -16,11 +17,13 @@ export class CollectorModule {
   private sourceModule: SourceModule;
   private analyzerModule: AnalyzerModule;
   private scrapperHandler: ScrapperHandler;
+  private formatterModule: FormatterModule;
 
   constructor() {
     this.sourceModule = new SourceModule();
     this.analyzerModule = new AnalyzerModule();
     this.scrapperHandler = new ScrapperHandler();
+    this.formatterModule = new FormatterModule();
   }
 
   /**
@@ -31,15 +34,30 @@ export class CollectorModule {
     const resources: Source[] = this.sourceModule.getSources();
 
     for (const resource of resources) {
-      if (resource.status === Status.Active) {
-        //const cronExpression = `0 0 *!/${resource.period} * * *`;
-        const cronExpression = '0 */2 * * * *';
-        cron.schedule(cronExpression, async () => {
-          const articles = await this.processResource(resource);
-          const analyzedArticles = await this.analyzerModule.startAnalyze(articles);
-          logger.info('Analyzed Articles', analyzedArticles);
-        });
+      if (resource.status !== Status.Active) {
+        continue;
       }
+
+      //const cronExpression = `0 0 *!/${resource.period} * * *`;
+      const cronExpression = '0 */2 * * * *';
+      cron.schedule(cronExpression, async () => {
+        const articles = await this.processResource(resource);
+        if (!articles) {
+          return;
+        }
+
+        const analyzedArticles = await this.analyzerModule.startAnalyze(articles);
+        if (!analyzedArticles) {
+          return;
+        }
+        logger.info('Analyzed Articles', analyzedArticles);
+
+        const formattedData = await this.formatterModule.formatData(analyzedArticles);
+        if (!formattedData) {
+          return;
+        }
+        logger.info('Formatted Articles', formattedData);
+      });
     }
   }
 

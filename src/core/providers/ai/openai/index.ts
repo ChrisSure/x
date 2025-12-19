@@ -3,7 +3,7 @@
  * Provides singleton instance of OpenAI provider for application-wide use
  */
 
-import { OpenAIProvider } from '@/core/providers';
+import { OpenAIProvider } from './openai.provider';
 export { OpenAIProvider } from './openai.provider';
 export type {
   ChatCompletionRequest,

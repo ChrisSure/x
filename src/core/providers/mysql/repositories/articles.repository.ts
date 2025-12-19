@@ -1,7 +1,7 @@
 import { mySQLProvider } from '@/core/providers/mysql';
 import { Nullable } from '@/core/types/nullable.type';
 import { logger } from '@/core/services/logger/logger.service';
-import { DatabaseArticle } from '../interfaces/database-article.interface';
+import { DatabaseArticle } from '@/core/providers/mysql';
 import { GET_LAST_DAY_PUBLISHED_ARTICLES_QUERY } from '../constants/sql-queries.constants';
 
 /**
