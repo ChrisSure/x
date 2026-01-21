@@ -6,6 +6,7 @@ import { ArticleContent } from '@/core/interfaces';
 import {
   GET_LAST_DAY_PUBLISHED_ARTICLES_QUERY,
   INSERT_ARTICLE_QUERY,
+  UPDATE_ARTICLE_IMAGE_QUERY,
 } from '../constants/sql-queries.constants';
 
 /**
@@ -44,24 +45,24 @@ export class ArticlesRepository {
   /**
    * Saves multiple articles to the database
    * @param articles - Array of articles to save
-   * @returns Promise resolving to true if successful, false otherwise
+   * @returns Promise resolving to array of articles with IDs or null if all failed
    */
-  async saveArticles(articles: ArticleContent[]): Promise<boolean> {
+  async saveArticles(articles: ArticleContent[]): Promise<Nullable<ArticleContent[]>> {
     if (!articles || articles.length === 0) {
       logger.warn('No articles to save');
-      return false;
+      return null;
     }
 
     try {
       logger.info(`Saving ${articles.length} articles to database`);
 
-      let successCount = 0;
+      const savedArticles: ArticleContent[] = [];
 
       for (const article of articles) {
         try {
           const createdDate = this.timestampToMySQLDateTime(article.created);
 
-          await mySQLProvider.execute(INSERT_ARTICLE_QUERY, [
+          const result = await mySQLProvider.execute(INSERT_ARTICLE_QUERY, [
             article.link,
             article.content,
             createdDate,
@@ -70,7 +71,17 @@ export class ArticlesRepository {
             'Published',
           ]);
 
-          successCount++;
+          // Add the database ID to the article
+          const articleWithId: ArticleContent = {
+            ...article,
+            id: result.data.insertId,
+          };
+
+          savedArticles.push(articleWithId);
+          logger.info('Successfully saved article', {
+            id: result.data.insertId,
+            title: article.title,
+          });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           logger.error('Failed to save individual article', {
@@ -82,14 +93,102 @@ export class ArticlesRepository {
         }
       }
 
-      logger.info(`Successfully saved ${successCount}/${articles.length} articles`);
-      return successCount > 0;
+      logger.info(`Successfully saved ${savedArticles.length}/${articles.length} articles`);
+      return savedArticles.length > 0 ? savedArticles : null;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Failed to save articles to database', {
         error: errorMessage,
       });
+      return null;
+    }
+  }
+
+  /**
+   * Updates an article's image URL
+   * @param articleId - ID of the article to update
+   * @param imageUrl - New image URL
+   * @returns Promise resolving to true if successful, false otherwise
+   */
+  async updateArticleImage(articleId: number, imageUrl: string): Promise<boolean> {
+    try {
+      const result = await mySQLProvider.execute(UPDATE_ARTICLE_IMAGE_QUERY, [imageUrl, articleId]);
+
+      if (result.data.affectedRows > 0) {
+        logger.info('Successfully updated article image', {
+          articleId,
+          imageUrl,
+        });
+        return true;
+      }
+
+      logger.warn('No article found with given ID', { articleId });
       return false;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to update article image', {
+        error: errorMessage,
+        articleId,
+        imageUrl,
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Fetches articles by their IDs
+   * @param articleIds - Array of article IDs to fetch
+   * @returns Promise with array of articles or null if error occurs
+   */
+  async getArticlesByIds(articleIds: number[]): Promise<Nullable<ArticleContent[]>> {
+    if (!articleIds || articleIds.length === 0) {
+      logger.warn('No article IDs provided');
+      return null;
+    }
+
+    try {
+      // Build dynamic placeholders for IN clause: (?, ?, ?)
+      const placeholders = articleIds.map(() => '?').join(', ');
+      const query = `SELECT id, link, content, created, title, image, status
+         FROM articles
+         WHERE id IN (${placeholders})
+         ORDER BY created DESC`;
+
+      logger.info('Fetching articles by IDs', {
+        articleIds,
+        query: query.substring(0, 100),
+      });
+
+      const result = await mySQLProvider.query<DatabaseArticle[]>(query, articleIds);
+
+      if (!result.data || result.data.length === 0) {
+        logger.warn('No articles found for given IDs', { articleIds });
+        return null;
+      }
+
+      logger.info('Found articles in database', {
+        count: result.data.length,
+        ids: result.data.map((a) => a.id),
+      });
+
+      // Convert DatabaseArticle to ArticleContent
+      const articles: ArticleContent[] = result.data.map((dbArticle) => ({
+        id: dbArticle.id,
+        title: dbArticle.title || '',
+        link: dbArticle.link,
+        content: dbArticle.content,
+        created: new Date(dbArticle.created).getTime(),
+        image: dbArticle.image || undefined,
+      }));
+
+      return articles;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to fetch articles by IDs', {
+        error: errorMessage,
+        articleIds,
+      });
+      return null;
     }
   }
 

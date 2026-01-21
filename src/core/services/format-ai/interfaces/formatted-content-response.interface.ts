@@ -4,4 +4,5 @@
 export interface FormattedContentResponse {
   title: string;
   content: string;
+  isRelevant: boolean;
 }

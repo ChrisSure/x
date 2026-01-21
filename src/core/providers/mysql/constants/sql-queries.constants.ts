@@ -13,3 +13,8 @@ export const GET_LAST_DAY_PUBLISHED_ARTICLES_QUERY = `SELECT id, link, content, 
  */
 export const INSERT_ARTICLE_QUERY = `INSERT INTO articles (link, content, created, title, image, status)
          VALUES (?, ?, ?, ?, ?, ?)`;
+
+/**
+ * Update article image by ID
+ */
+export const UPDATE_ARTICLE_IMAGE_QUERY = `UPDATE articles SET image = ? WHERE id = ?`;

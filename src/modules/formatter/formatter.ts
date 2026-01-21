@@ -17,11 +17,16 @@ export class FormatterModule {
       const formattedArticles = await this.formatAiService.formatArticles(articles);
 
       if (formattedArticles && formattedArticles.length > 0) {
-        const saved = await articlesRepository.saveArticles(formattedArticles);
-        if (saved) {
-          logger.info('Successfully saved formatted articles to database');
+        const savedArticlesWithIds = await articlesRepository.saveArticles(formattedArticles);
+        if (savedArticlesWithIds) {
+          logger.info('Successfully saved formatted articles to database', {
+            count: savedArticlesWithIds.length,
+            ids: savedArticlesWithIds.map((a) => a.id),
+          });
+          return savedArticlesWithIds;
         } else {
           logger.warn('Failed to save some or all articles to database');
+          return formattedArticles;
         }
       }
       return formattedArticles;

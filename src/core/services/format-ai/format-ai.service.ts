@@ -46,7 +46,9 @@ export class FormatAiService {
               newContent: formatted.content,
             });
           } else {
-            formattedArticles.push(article);
+            logger.info(`Article ${i + 1} was filtered out as irrelevant`, {
+              originalTitle: article.title,
+            });
           }
         } catch (error) {
           logger.error(`Error formatting article ${i + 1}`, { error });
@@ -90,6 +92,15 @@ export class FormatAiService {
       if (!formatted) {
         return null;
       }
+
+      // Filter out irrelevant articles (war, politics, non-football content)
+      if (!formatted.isRelevant) {
+        logger.info('Article filtered out as irrelevant', {
+          title: article.title,
+        });
+        return null;
+      }
+
       return {
         title: formatted.title,
         content: formatted.content,
@@ -133,7 +144,7 @@ Respond with JSON containing the rewritten title and content.`;
         jsonContent = jsonContent.replace(/^```\s*\n/, '').replace(/\n```\s*$/, '');
       }
       const parsed = JSON.parse(jsonContent) as FormattedContentResponse;
-      if (!parsed.title || !parsed.content) {
+      if (!parsed.title || !parsed.content || typeof parsed.isRelevant !== 'boolean') {
         return null;
       }
       return parsed;

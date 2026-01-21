@@ -2,6 +2,7 @@
  * Represents the content of a scraped article
  */
 export interface ArticleContent {
+  id?: number;
   title: string;
   link: string;
   content: string;
