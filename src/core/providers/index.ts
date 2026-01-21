@@ -25,6 +25,9 @@ export type {
   ImageStyle,
 } from './ai/openai';
 
+// Telegram Provider
+export { telegramProvider, TelegramProvider, TelegramProviderError } from './telegram';
+
 // MySQL Provider
 export { mySQLProvider, MySQLProvider, MySQLProviderError } from './mysql';
 export type {

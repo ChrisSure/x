@@ -11,6 +11,7 @@ import { AnalyzerModule } from '@/modules/analyzer/analyzer';
 import { FormatterModule } from '@/modules/formatter/formatter';
 import { articlesRepository } from '@/core/providers/mysql/repositories/articles.repository';
 import { ImageUpdateResponse } from '@/modules/collector/interfaces/image-update-response.interface';
+import { telegramProvider } from '@/core/providers';
 
 /**
  * Main collector service that orchestrates content collection from various sources
@@ -63,6 +64,13 @@ export class CollectorModule {
         const updatedArticles = await this.updateArticleImages(formattedData);
         if (updatedArticles) {
           logger.info('Updated Articles with new images', updatedArticles);
+          try {
+            const telegramResult = await telegramProvider.sendArticles(updatedArticles);
+            logger.info('Telegram send summary', telegramResult);
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger.error('Failed to send articles to Telegram', { error: errorMessage });
+          }
         }
       });
     }

@@ -15,6 +15,10 @@ import { FormattedContentResponse } from './interfaces';
  * Uses OpenAI to rewrite titles and content while preserving full context
  */
 export class FormatAiService {
+  private hasUkrainianLetters(value: string): boolean {
+    return /[іїєґІЇЄҐ]/.test(value);
+  }
+
   /**
    * Formats an array of articles by rewriting their titles and content
    * Preserves link, created, and image fields
@@ -69,6 +73,14 @@ export class FormatAiService {
    */
   private async formatSingleArticle(article: ArticleContent): Promise<Nullable<ArticleContent>> {
     try {
+      const originalText = `${article.title} ${article.content}`;
+      if (!this.hasUkrainianLetters(originalText)) {
+        logger.info('Article filtered out due to non-Ukrainian language', {
+          title: article.title,
+        });
+        return null;
+      }
+
       const userPrompt = this.buildUserPrompt(article);
 
       const response = await openAIProvider.chat({
@@ -96,6 +108,14 @@ export class FormatAiService {
       // Filter out irrelevant articles (war, politics, non-football content)
       if (!formatted.isRelevant) {
         logger.info('Article filtered out as irrelevant', {
+          title: article.title,
+        });
+        return null;
+      }
+
+      const formattedText = `${formatted.title} ${formatted.content}`;
+      if (!this.hasUkrainianLetters(formattedText)) {
+        logger.info('Article filtered out due to non-Ukrainian AI output', {
           title: article.title,
         });
         return null;
